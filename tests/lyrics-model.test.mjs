@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {parseLRC,activeLyric} from '../web/lyrics-model.mjs';
+test('timed lyrics use real timestamps, fractions, duplicate stamps and seeks',()=>{const lines=parseLRC('[ar:Artist]\n[offset:500]\n[00:02.50]First\n[00:05.100][00:08.00]Next');assert.deepEqual(lines.map(x=>x.time),[3,5.6,8.5]);assert.equal(activeLyric(lines,2),-1);assert.equal(activeLyric(lines,6),1);assert.equal(activeLyric(lines,3.2),0);assert.deepEqual(parseLRC('Plain lyrics have no timing'),[]);});

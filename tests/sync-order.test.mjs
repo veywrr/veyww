@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {sameCollection,mergeCollection} from '../web/sync-model.mjs';
+test('server field ordering does not leave an unchanged collection dirty forever',()=>{const a={profile:{name:'A',glass:{blur:12,enabled:true}},likes:[{id:'1',title:'Song'}]},b={likes:[{title:'Song',id:'1'}],profile:{glass:{enabled:true,blur:12},name:'A'}};assert.equal(sameCollection(a,b),true);assert.equal(sameCollection(mergeCollection(a,a,b),mergeCollection(b,b,a)),true);assert.equal(sameCollection(a,{...b,likes:[]}),false);});

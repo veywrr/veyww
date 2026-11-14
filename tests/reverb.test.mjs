@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {roomImpulse,reverbLevels} from '../web/reverb.mjs';
+test('mobile reverb stays neutral at zero and has a more audible soft wet balance',()=>{assert.deepEqual(reverbLevels(0,true),{wet:0,dry:1});for(const amount of [.1,.5,1]){const mobile=reverbLevels(amount,true),desktop=reverbLevels(amount);assert.ok(mobile.wet>desktop.wet);assert.ok(mobile.dry>=.7);assert.ok(Number.isFinite(mobile.wet));}});
+test('soft reverb has silence before onset, a gentle attack, bounded energy and a decaying diffuse tail',()=>{
+ const channels=[];let seed=1;const random=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296),context={sampleRate:24000,createBuffer:(c,n)=>({getChannelData:i=>channels[i]??=new Float32Array(n)})};roomImpulse(context,random);
+ const rms=(x,a,b)=>Math.sqrt(x.slice(a,b).reduce((s,v)=>s+v*v,0)/(b-a));for(const x of channels){assert.ok(x.slice(0,576).every(v=>v===0));assert.ok(rms(x,576,800)<rms(x,2400,4800));assert.ok(rms(x,20000,30000)>rms(x,80000,90000)*10);assert.ok(Math.max(...x)<.05);assert.ok(Math.abs(x.reduce((s,v)=>s+v*v,0)-.55)<.001);}assert.notDeepEqual(channels[0],channels[1]);assert.deepEqual(reverbLevels(0),{wet:0,dry:1});assert.ok(reverbLevels(1).wet<1);assert.ok(reverbLevels(1).dry>.8);
+});

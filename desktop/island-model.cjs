@@ -1,0 +1,3 @@
+const commands=new Set(['previous','toggle','next','like','open','hide']);
+function cleanState(value,origin){if(!value||typeof value!=='object')return null;const text=(v,n)=>typeof v==='string'?v.slice(0,n):'';let art='';try{const u=new URL(value.art,origin);if(u.origin===origin&&u.pathname==='/artwork')art=u.href;else if(u.protocol==='https:'&&/^i[1-4]\.sndcdn\.com$/.test(u.hostname))art=u.href;}catch{}return {id:text(value.id,300),title:text(value.title,300),artist:text(value.artist,200),art,playing:value.playing===true,liked:value.liked===true};}
+module.exports={cleanState,allowedCommand:command=>commands.has(command)};

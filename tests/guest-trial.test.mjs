@@ -1,0 +1,13 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);require('../desktop/catalog.cjs').call=async(mode,value)=>mode==='resolve'?{url:'https://example.test/audio',hls:false}:[{id:'sample',title:'Sample'}];require('../desktop/artwork.cjs').artwork=async()=>({type:'image/png',body:Buffer.from([137,80,78,71,13,10,26,10])});const {serve}=require('../desktop/server.cjs');
+test('guest trial requires explicit opt-in, permits five different tracks and preserves quota on retry',async()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'veyww-guests-')),server=await serve(0,{dataDir:dir,requireAccount:true}),base='http://127.0.0.1:'+server.address().port;
+ async function request(route,data,cookie=''){const r=await fetch(base+route,{method:data?'POST':'GET',headers:{...(data?{'Content-Type':'application/json',Origin:base}:{}),Cookie:cookie},body:data?JSON.stringify(data):undefined});return {status:r.status,cookie:r.headers.get('set-cookie')?.split(';')[0],data:await r.json()};}
+ try{assert.equal((await request('/catalog/catalogue_artists?value=sample')).status,200);assert.equal((await request('/catalog/search?value=sample')).status,401);const trial=await request('/account/guest',{});assert.equal(trial.status,200);assert.equal(trial.data.tracks,5);assert.match(trial.cookie,/^music_guest=/);assert.equal((await request('/catalog/search?value=sample',null,trial.cookie)).status,200);assert.equal((await fetch(base+'/artwork?url=https://i1.sndcdn.com/test.jpg',{headers:{Cookie:trial.cookie}})).status,200);assert.equal((await fetch(base+'/artwork?url=https://i1.sndcdn.com/test.jpg')).status,401);
+ for(let i=0;i<5;i++)assert.equal((await request('/catalog/resolve?value='+encodeURIComponent('https://soundcloud.com/a/track'+i),null,trial.cookie)).status,200);
+ assert.equal((await request('/catalog/resolve?value='+encodeURIComponent('https://soundcloud.com/a/track6'),null,trial.cookie)).status,401);
+ assert.equal((await request('/catalog/resolve?value='+encodeURIComponent('https://soundcloud.com/a/track0'),null,trial.cookie)).status,200);
+ assert.equal((await request('/account/guest',{},trial.cookie)).data.tracks,0);
+ const account=await request('/account/register',{nickname:'trial_account',password:'local-test-password'});assert.equal((await request('/catalog/resolve?value='+encodeURIComponent('https://soundcloud.com/a/track6'),null,account.cookie)).status,200);
+ }finally{server.closeAllConnections();await new Promise(r=>server.close(r));fs.rmSync(dir,{recursive:true,force:true});}
+});

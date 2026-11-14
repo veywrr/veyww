@@ -1,0 +1,3 @@
+const clamp=(n,lo,hi,f)=>Number.isFinite(Number(n))?Math.max(lo,Math.min(hi,Number(n))):f;
+function cleanAppearance(value={}){return {enabled:value?.enabled===true,desktop:value?.desktop!==false,transparency:clamp(value?.transparency,0,98,65),panelTransparency:clamp(value?.panelTransparency,0,95,25),blur:clamp(value?.blur,0,40,24),tint:/^#[a-f0-9]{6}$/i.test(value?.tint||'')?value.tint.toLowerCase():'#304b53',theme:['dark','amoled','plum','teal','steel','slate','mint','sage','burgundy','powder','coffee','rose'].includes(value?.theme)?value.theme:'dark'};}
+module.exports={cleanAppearance,allowedWindowCommand:value=>['minimize','maximize','close'].includes(value)};

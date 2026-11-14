@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {diverseMix} from '../web/mix.mjs';
+import {mixRequests} from '../web/core.mjs';
+import {searchArtistSuggestions,artistSuggestions,genreCatalog} from '../web/preferences.mjs';
+test('three quarters of a suitable pool follows favorites and established related recordings',()=>{const tracks=Array.from({length:60},(_,i)=>({id:''+i,title:'Song '+i,artist:i<15?'Favorite':i<30?'Related '+i:'Other '+i,relatedTaste:i>=15&&i<30,plays:i<30?20000:1000000}));const out=diverseMix(tracks,{},[{artist:'Favorite'}],[],'day',20,Date.now(),[],{},()=>.5);assert.equal(out.filter(t=>t.artist==='Favorite'||t.relatedTaste).length,15);});
+test('popularity favors a widely played recording among equally relevant choices',()=>{const out=diverseMix([{id:'a',artist:'A',title:'A',plays:1},{id:'b',artist:'B',title:'B',plays:1000000}],{},[],[],'day',1,Date.now(),[],{},()=>.5);assert.equal(out[0].id,'b');});
+test('passive listening never becomes a positive recommendation seed',()=>{const jobs=mixRequests([],['phonk'],0,'day',[{name:'Favorite'}],[{artist:'Unwanted',page:'https://soundcloud.com/unwanted/song'}]);assert.equal(jobs.filter(x=>x.value==='Favorite').length,1);assert.ok(!jobs.some(x=>x.value.includes('unwanted')));});
+test('partial artist input searches beyond selected genres and suggestions follow taste',()=>{assert.ok(searchArtistSuggestions('skri',['jazz']).some(x=>x.name==='Skrillex'));assert.ok(artistSuggestions(['phonk']).length>=6);assert.ok(genreCatalog.find(x=>x.id==='phonk').artists.includes('Kordhell'));assert.ok(!artistSuggestions(['jazz']).some(x=>x.name==='Skrillex'));});

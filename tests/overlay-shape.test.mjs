@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import shape from '../desktop/overlay-shape.cjs';
+test('overlay native compositor shape leaves corners and outer padding outside the blur area',()=>{const r=shape.overlayShape();assert.equal(r.length,44);for(const strip of r){assert.ok(strip.x>=4&&strip.y>=4&&strip.y<48);assert.ok(strip.x+strip.width<=276);assert.equal(strip.height,1);}assert.ok(r[0].width<r[22].width);assert.equal(r[0].width,r.at(-1).width);});

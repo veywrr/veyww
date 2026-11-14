@@ -1,0 +1,31 @@
+/* Keep the viewport steady when a section gains or loses its scrollbar. */
+html{scrollbar-gutter:stable;overflow-x:clip}body{overflow-x:clip}
+#bootStatus{position:fixed;top:48px;right:24px;z-index:1000;width:min(440px,calc(100vw - 48px));padding:24px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:20px;box-shadow:0 12px 50px #0006}#bootStatus p{overflow-wrap:anywhere}#bootReason{font-size:12px;color:var(--muted)}
+main,main>section,.track-list,.track{min-width:0;max-width:100%}
+@media(min-width:951px){main{max-width:none;padding-left:clamp(28px,3.5vw,90px);padding-right:clamp(28px,3.5vw,90px)}.cards{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.hero{min-height:clamp(350px,29vw,480px)}}
+@media(min-width:1900px){.hero h1{font-size:clamp(70px,4vw,100px)}.turntable .orb{width:340px;height:340px}.orb-core{inset:25%}}
+.track-cover,.track-time,.track>.heart-button,.track>button:last-child{flex-shrink:0}
+.track-title{width:100%;text-overflow:ellipsis}.track-sort{flex-wrap:wrap}
+aside{z-index:5;overflow-y:auto;overscroll-behavior:contain}
+.player{contain:layout}.player .now{flex-shrink:1}
+@media(min-width:951px){.player .transport{min-width:170px}}
+.turntable{position:relative;flex-shrink:0;margin:12px 20px 12px 38px}
+.turntable .orb{transform:none}
+:root[data-turntable-preview=true] .turntable .orb{animation:record-spin 16s linear infinite;animation-play-state:paused;will-change:transform}
+:root[data-turntable-preview=true] .turntable.playing .orb{animation-play-state:running}
+.orb>span{width:45%;max-height:44%;overflow:hidden;letter-spacing:0;line-height:1.25;font-size:12px;overflow-wrap:anywhere}
+.orb>span strong{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:600}
+.orb>span small{display:block;margin-top:7px;font-size:10px;color:var(--muted)}
+.tonearm{display:none;position:absolute;top:-8%;right:-7%;width:16px;height:63%;border-radius:9px;background:linear-gradient(90deg,var(--subtle),var(--text) 45%,var(--border));transform-origin:50% 12px;transform:rotate(-12deg);transition:transform .8s ease;box-shadow:3px 4px 8px #0005}
+:root[data-turntable-preview=true] .tonearm{display:block}
+.tonearm::before{content:'';position:absolute;width:30px;height:30px;left:-7px;top:0;border-radius:50%;background:radial-gradient(circle,var(--text) 0 12%,var(--border) 18% 50%,var(--subtle) 55% 60%,var(--surface) 65%)}
+.tonearm::after{content:'';position:absolute;bottom:-14px;left:-5px;width:26px;height:38px;background:linear-gradient(90deg,var(--border),var(--muted),var(--border));border-radius:5px;transform:rotate(-15deg)}
+.turntable.playing .tonearm{transform:rotate(24deg)}
+@keyframes record-spin{to{transform:rotate(360deg)}}
+.window-minimizing{pointer-events:none;transform-origin:50% 100%;animation:window-away .18s cubic-bezier(.4,0,1,1) forwards}
+.window-restoring{transform-origin:50% 100%;animation:window-back .22s cubic-bezier(.15,.8,.25,1) both}
+@keyframes window-away{to{transform:translateY(12vh) scale(.87);opacity:0}}
+@keyframes window-back{from{transform:translateY(9vh) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:900px){.turntable{margin:10px}.turntable .orb{margin:0}}
+@media(max-width:650px){.turntable{position:absolute;right:-45px;opacity:.5}.turntable .orb{position:relative;right:auto;opacity:1}.tonearm{right:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.turntable .orb{will-change:auto}}
