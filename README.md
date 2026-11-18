@@ -4,9 +4,14 @@
 
 ## Download
 
-- **Windows** — [скачать актуальный установщик veyww](https://veyww.space/download/windows).
+- **Windows** — [скачать установщик veyww 0.20.2](https://veyww.space/download/windows).
 - **Android** — открой [@veyww_bot](https://t.me/veyww_bot) и выбери «Скачать → Android».
 - **Браузер** — [открыть veyww.space](https://veyww.space/).
+
+## Что нового в veyww 0.20.2
+
+- В Windows при сбое локального источника плеер может подключить поток через veyww.space.
+- В публичном профиле баннер теперь за ником. Видны аватар и открытые плейлисты.
 
 ## Что нового в veyww 0.20
 
