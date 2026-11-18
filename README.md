@@ -4,9 +4,14 @@
 
 ## Download
 
-- **Windows** — [скачать установщик veyww 0.20.2](https://veyww.space/download/windows).
+- **Windows** — [скачать установщик veyww 0.20.3 beta](https://veyww.space/download/windows?v=0.20.3).
 - **Android** — открой [@veyww_bot](https://t.me/veyww_bot) и выбери «Скачать → Android».
 - **Браузер** — [открыть veyww.space](https://veyww.space/).
+
+## Что нового в veyww 0.20.3
+
+- Если локальный каталог SoundCloud недоступен, Windows запрашивает результаты поиска и треки для «Моей частоты» через veyww.space.
+- Воспроизведение через резервный поток пока проверяется на Windows.
 
 ## Что нового в veyww 0.20.2
 
