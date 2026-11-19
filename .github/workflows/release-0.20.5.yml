@@ -1,0 +1,37 @@
+name: Publish VEYWW 0.20.5 downloads
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.20.5.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify release files and publish downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --connect-timeout 15 --max-time 240 'https://veyww.space/download/windows?v=0.20.5' -o veyww-Windows-0.20.5-Setup.exe
+          printf '%s\n' 'dcef52c7230a30e0519f56d2f22b9bad99a743ef530565a617925e05397cef81  veyww-Windows-0.20.5-Setup.exe' > SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat > RELEASE-NOTES.txt <<'NOTES'
+          VEYWW 0.20.5 beta — Windows
+          
+          • Кнопка скачивания после лайка и плюса.
+          • Скачивание целых плейлистов и сохранение текущей «Моей частоты».
+          • Обычный интерфейс со скачанной музыкой без сети.
+          • Скорость, независимый тон и реверберация доступны офлайн.
+          • Скачанные треки воспроизводятся из файлов без повторного запроса ссылки; добавлен ограниченный резервный resolve при медленном локальном источнике.
+          
+          Windows: 175 тестов, проверка установщика и установленного приложения пройдены. Android 0.20.5 будет добавлен после завершения проверки офлайн-запуска на эмуляторе; пока для Android доступен предыдущий релиз 0.20.4.
+          NOTES
+          if ! gh release view v0.20.5 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create v0.20.5 --repo "$GITHUB_REPOSITORY" --prerelease --title 'VEYWW 0.20.5 beta' --notes-file RELEASE-NOTES.txt
+          fi
+          gh release edit v0.20.5 --repo "$GITHUB_REPOSITORY" --notes-file RELEASE-NOTES.txt
+          gh release upload v0.20.5 --repo "$GITHUB_REPOSITORY" veyww-Windows-0.20.5-Setup.exe SHA256SUMS --clobber
