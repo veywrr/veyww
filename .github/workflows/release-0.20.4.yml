@@ -1,0 +1,37 @@
+name: Publish VEYWW 0.20.4 downloads
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.20.4.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify release files and publish downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --connect-timeout 15 --max-time 240 'https://veyww.space/download/windows?v=0.20.4' -o veyww-Windows-0.20.4-Setup.exe
+          curl -fL --retry 3 --connect-timeout 15 --max-time 180 'https://veyww.space/download/android?v=0.20.4' -o veyww-Android-0.20.4-beta.apk
+          printf '%s\n' '3f24ac9583cee0cce9f59f5accf7b3343f436447572eeec5914865d521b05767  veyww-Windows-0.20.4-Setup.exe' '32632bedc2f582ea98040e666e50b312585b6b4edfa9e298ae7ababaa8f02496  veyww-Android-0.20.4-beta.apk' > SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat > RELEASE-NOTES.txt <<'NOTES'
+          VEYWW 0.20.4 beta
+          
+          • Подготовка каталога при старте и следующего трека без загрузки аудио.
+          • Меньше повторных запросов; обновление истёкших ссылок и диагностика запуска.
+          • Сохранены резервный поиск Windows и нативный HLS на iPhone.
+          • Android обновлён до интерфейса 0.20: английский язык, темы, публичные плейлисты и профили.
+          
+          Android можно устанавливать поверх 0.18.4: подпись и application ID сохранены.
+          Android: сборка, lint, модульные проверки и два теста воспроизведения на эмуляторе пройдены. Проверка новой APK на физических телефонах выполняется отдельно.
+          NOTES
+          if ! gh release view v0.20.4 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create v0.20.4 --repo "$GITHUB_REPOSITORY" --prerelease --title 'VEYWW 0.20.4 beta' --notes-file RELEASE-NOTES.txt
+          fi
+          gh release upload v0.20.4 --repo "$GITHUB_REPOSITORY" veyww-Windows-0.20.4-Setup.exe veyww-Android-0.20.4-beta.apk SHA256SUMS --clobber
