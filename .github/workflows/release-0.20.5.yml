@@ -17,21 +17,25 @@ jobs:
         run: |
           set -euo pipefail
           curl -fL --retry 3 --connect-timeout 15 --max-time 240 'https://veyww.space/download/windows?v=0.20.5' -o veyww-Windows-0.20.5-Setup.exe
-          printf '%s\n' 'aa7a36a453aa6a842428f50849c68a639c645261c1e53d46c6d86a7e967ac2c2  veyww-Windows-0.20.5-Setup.exe' > SHA256SUMS
+          curl -fL --retry 3 --connect-timeout 15 --max-time 180 'https://veyww.space/download/android?v=0.20.5' -o veyww-Android-0.20.5-beta.apk
+          printf '%s\n' 'aa7a36a453aa6a842428f50849c68a639c645261c1e53d46c6d86a7e967ac2c2  veyww-Windows-0.20.5-Setup.exe' '5bbb7a79855d726e49b2710ef12db6b53dc1293b5c797f6c073c94c5bff8cd2b  veyww-Android-0.20.5-beta.apk' > SHA256SUMS
           sha256sum -c SHA256SUMS
           cat > RELEASE-NOTES.txt <<'NOTES'
-          VEYWW 0.20.5 beta — Windows
+          VEYWW 0.20.5 beta
           
-          • Кнопка скачивания после лайка и плюса.
-          • Скачивание целых плейлистов и сохранение текущей «Моей частоты».
-          • Обычный интерфейс со скачанной музыкой без сети.
-          • Скорость, независимый тон и реверберация доступны офлайн.
-          • Скачанные треки воспроизводятся из файлов без повторного запроса ссылки; добавлен ограниченный резервный resolve при медленном локальном источнике.
+          • Кнопка скачивания трека справа от лайка и плюса на Windows и Android.
+          • Можно скачать плейлист целиком с сохранением названия и порядка, а также текущую «Мою частоту».
+          • Без сети открывается привычный интерфейс со скачанными треками и плейлистами. Верхняя кнопка «Офлайн» Android убрана; настройка автосохранения частоты сохранена.
+          • Скорость, независимый тон и реверберация доступны со скачанной музыкой.
+          • Скачанные треки используют локальные файлы без повторного получения ссылки. Загрузки уступают подготовке воспроизведения.
+          • Windows раньше подключает резервный источник при медленном локальном resolve.
           
-          Windows: 175 тестов, проверка установщика и установленного приложения пройдены. Android 0.20.5 будет добавлен после завершения проверки офлайн-запуска на эмуляторе; пока для Android доступен предыдущий релиз 0.20.4.
+          Сохранены аккаунты, прежние скачивания и подпись Android. Устанавливай APK поверх предыдущей версии.
+          Проверено: 175 общих тестов; установка и запуск Windows; сборка Android, lint, JVM-тесты и четыре проверки на эмуляторе Android 14 (API 34), включая холодный офлайн-запуск и очередь с обработкой звука.
+          
           NOTES
           if ! gh release view v0.20.5 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create v0.20.5 --repo "$GITHUB_REPOSITORY" --prerelease --title 'VEYWW 0.20.5 beta' --notes-file RELEASE-NOTES.txt
           fi
           gh release edit v0.20.5 --repo "$GITHUB_REPOSITORY" --notes-file RELEASE-NOTES.txt
-          gh release upload v0.20.5 --repo "$GITHUB_REPOSITORY" veyww-Windows-0.20.5-Setup.exe SHA256SUMS --clobber
+          gh release upload v0.20.5 --repo "$GITHUB_REPOSITORY" veyww-Windows-0.20.5-Setup.exe veyww-Android-0.20.5-beta.apk SHA256SUMS --clobber

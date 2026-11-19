@@ -5,12 +5,10 @@
 ## Download
 
 - **Windows** — [скачать установщик veyww 0.20.5 beta](https://github.com/veywrr/veyww/releases/download/v0.20.5/veyww-Windows-0.20.5-Setup.exe).
-- **Android** — [скачать APK 0.20.4](https://github.com/veywrr/veyww/releases/download/v0.20.4/veyww-Android-0.20.4-beta.apk) или открой [@veyww_bot](https://t.me/veyww_bot). Установи поверх прежней версии, чтобы сохранить данные.
+- **Android** — [скачать APK 0.20.5](https://github.com/veywrr/veyww/releases/download/v0.20.5/veyww-Android-0.20.5-beta.apk) или открой [@veyww_bot](https://t.me/veyww_bot). Установи поверх прежней версии, чтобы сохранить данные.
 - **Браузер** — [открыть veyww.space](https://veyww.space/).
 
 ## Что нового в veyww 0.20.5
-
-Windows уже доступен. Android 0.20.5 будет добавлен после офлайн-проверки; пока скачивается предыдущая APK 0.20.4.
 
 - Скачивание трека рядом с лайком и плюсом на Windows и Android.
 - Скачивание плейлиста целиком, с названием и порядком; сохранение текущей «Моей частоты».
@@ -19,7 +17,7 @@ Windows уже доступен. Android 0.20.5 будет добавлен по
 - Сохранённые треки воспроизводятся из локальных файлов; при переходе по офлайн-очереди ссылка SoundCloud повторно не запрашивается.
 - Windows быстрее подключает резервный источник при медленном локальном resolve; скачивания уступают подготовке воспроизведения.
 
-[Файлы 0.20.5 и SHA-256](https://github.com/veywrr/veyww/releases/tag/v0.20.5). Сохранены аккаунты, предыдущие скачивания и подпись Android.
+[Файлы 0.20.5 и SHA-256](https://github.com/veywrr/veyww/releases/tag/v0.20.5). Сохранены аккаунты, предыдущие скачивания и подпись Android. Android прошёл сборку, lint, JVM-тесты и четыре проверки на эмуляторе Android 14 (API 34), включая запуск без сети и офлайн-очередь с обработкой звука.
 
 ## Что нового в veyww 0.20.4
 
