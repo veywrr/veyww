@@ -17,7 +17,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fL --retry 3 --connect-timeout 15 --max-time 240 'https://veyww.space/download/windows?v=0.20.5' -o veyww-Windows-0.20.5-Setup.exe
-          printf '%s\n' 'dcef52c7230a30e0519f56d2f22b9bad99a743ef530565a617925e05397cef81  veyww-Windows-0.20.5-Setup.exe' > SHA256SUMS
+          printf '%s\n' 'aa7a36a453aa6a842428f50849c68a639c645261c1e53d46c6d86a7e967ac2c2  veyww-Windows-0.20.5-Setup.exe' > SHA256SUMS
           sha256sum -c SHA256SUMS
           cat > RELEASE-NOTES.txt <<'NOTES'
           VEYWW 0.20.5 beta — Windows
