@@ -1,0 +1,37 @@
+name: Publish verified VEYWW 0.20.6 binaries
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.20.6.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Download tested candidates and verify hashes
+        run: |
+          set -euo pipefail
+          mkdir release-files
+          cd release-files
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 240 'https://veyww.space/download/windows?v=0.20.6' -o veyww-Windows-0.20.6-Setup.exe
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 'https://veyww.space/download/android?v=0.20.6' -o veyww-Android-0.20.6-beta.apk
+          printf '%s  %s\n' '354c65f8d226c5123da124ca4d653edc59b1e14e87c9694091bbc1ee67b1fa87' veyww-Windows-0.20.6-Setup.exe '8f9c355cf45f93c0d55ae1ab1af348ed64ead7bf859a8698234ebc61eefdf294' veyww-Android-0.20.6-beta.apk | sha256sum -c -
+          curl -fsS --max-time 30 'https://veyww.space/assets/updates/0.20.6/latest.yml' -o latest.yml
+          curl -fsS --max-time 30 'https://veyww.space/assets/updates/0.20.6/veyww-Windows-0.20.6-Setup.exe.blockmap' -o veyww-Windows-0.20.6-Setup.exe.blockmap
+          node -e "const fs=require('node:fs'),c=require('node:crypto'),assert=require('node:assert/strict');const y=fs.readFileSync('latest.yml','utf8'),h=c.createHash('sha512').update(fs.readFileSync('veyww-Windows-0.20.6-Setup.exe')).digest('base64'),values=[...y.matchAll(/sha512:\\s*(\\S+)/g)].map(m=>m[1]);assert.ok(values.length);assert.ok(values.every(v=>v===h));assert.match(y,/version: 0.20.6/);assert.ok(fs.statSync('veyww-Windows-0.20.6-Setup.exe.blockmap').size>100);console.log('UPDATE_METADATA_VERIFIED');"
+          sha256sum veyww-Windows-0.20.6-Setup.exe veyww-Android-0.20.6-beta.apk veyww-Windows-0.20.6-Setup.exe.blockmap latest.yml > SHA256SUMS.txt
+      - name: Publish complete release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create v0.20.6 --repo "$GITHUB_REPOSITORY" --draft --title 'veyww 0.20.6 — очередь и обновления Windows' --notes-file releases/0.20.6.md
+          gh release upload v0.20.6 release-files/* --repo "$GITHUB_REPOSITORY"
+          gh release edit v0.20.6 --repo "$GITHUB_REPOSITORY" --draft=false --latest
