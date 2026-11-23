@@ -1,0 +1,45 @@
+name: Publish veyww 0.21
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.21.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify packages and publish Windows update
+        run: |
+          set -euo pipefail
+          mkdir release-files
+          cd release-files
+          base=https://veyww.space/assets/updates/0.21.0
+          win=veyww-Windows-0.21.0-Setup.exe
+          apk=veyww-Android-0.21.0.apk
+          for attempt in {1..85}; do
+            if curl -fsS --max-time 6 "$base/SHA256SUMS.txt" -o expected.txt 2>/dev/null && grep -qF "$win" expected.txt; then break; fi
+            sleep 10
+          done
+          test -s expected.txt
+          get(){ curl -fsSL --retry 3 --connect-timeout 15 --max-time 150 "$1" -o "$2"; }
+          get "$base/latest.yml" latest.yml
+          get "$base/$win.blockmap" "$win.blockmap"
+          get "https://veyww.space/download/windows?v=0.21.0" "$win"
+          grep -E '  (veyww-Windows-0\.21\.0-Setup\.exe(\.blockmap)?|latest\.yml)$' expected.txt | sha256sum -c -
+          node -e 'const fs=require("node:fs"),c=require("node:crypto"),a=require("node:assert/strict");const win=process.argv[1],y=fs.readFileSync("latest.yml","utf8"),sha=c.createHash("sha512").update(fs.readFileSync(win)).digest("base64"),values=[...y.matchAll(/sha512:\s*(\S+)/g)];a.match(y,/^version: 0\.21\.0\r?$/m);a.ok(values.length&&values.every(m=>m[1]===sha)&&y.includes(win));' "$win"
+          files=("$win" "$win.blockmap" latest.yml)
+          if grep -qF "  $apk" expected.txt &&
+             get "https://veyww.space/download/android?v=0.21.0" "$apk" &&
+             grep -F "  $apk" expected.txt | sha256sum -c -; then
+            files+=("$apk")
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS.txt
+          gh release create v0.21.0 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title 'veyww 0.21' --notes-file ../releases/0.21.md
+          gh release upload v0.21.0 "${files[@]}" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY"
+          gh release edit v0.21.0 --repo "$GITHUB_REPOSITORY" --draft=false --latest
