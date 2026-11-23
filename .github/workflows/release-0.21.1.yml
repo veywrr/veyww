@@ -1,0 +1,56 @@
+name: Publish veyww 0.21 for Windows and Android
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.21.1.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify staged downloads and publish veyww 0.21
+        run: |
+          set -euo pipefail
+          mkdir release-files
+          cd release-files
+          version=0.21.1
+          tag=v$version
+          base=https://veyww.space/assets/updates/$version
+          win=veyww-Windows-$version-Setup.exe
+          apk=veyww-Android-$version.apk
+          get(){ curl -fsSL --retry 3 --connect-timeout 15 --max-time 160 "$1" -o "$2"; }
+          for attempt in {1..95}; do
+            if curl -fsS --max-time 5 "$base/SHA256SUMS.txt" -o expected.txt 2>/dev/null &&
+               curl -fsS --max-time 5 https://veyww.space/build.json | jq -e --arg v "$version" '.version==$v and .displayVersion=="0.21"' >/dev/null; then
+              break
+            fi
+            sleep 10
+          done
+          test -s expected.txt
+          get "$base/latest.yml" latest.yml
+          get "$base/$win.blockmap" "$win.blockmap"
+          get "https://veyww.space/download/windows?v=$version" "$win"
+          get "https://veyww.space/download/android?v=$version" "$apk"
+          python3 - "$win" "$apk" <<'VERIFY'
+          import pathlib, re, sys
+          names = {sys.argv[1], sys.argv[2], sys.argv[1]+'.blockmap', 'latest.yml'}
+          lines = [re.fullmatch(r'([0-9a-f]{64}) [ *](.+)', line) for line in pathlib.Path('expected.txt').read_text().splitlines()]
+          assert len(lines) == len(names) and all(lines) and {line[2] for line in lines} == names
+          VERIFY
+          sha256sum --check --strict expected.txt
+          node -e 'const fs=require("node:fs"),c=require("node:crypto"),a=require("node:assert/strict");const win=process.argv[1],y=fs.readFileSync("latest.yml","utf8"),sha=c.createHash("sha512").update(fs.readFileSync(win)).digest("base64"),values=[...y.matchAll(/sha512:\s*(\S+)/g)];a.match(y,/^version: 0\.21\.1\r?$/m);a.ok(values.length&&values.every(m=>m[1]===sha)&&y.includes(win));' "$win"
+          sha256sum "$win" "$apk" "$win.blockmap" latest.yml > SHA256SUMS.txt
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft > draft.json 2>/dev/null; then
+            jq -e '.isDraft' draft.json >/dev/null
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title 'veyww 0.21' --notes-file ../releases/0.21.md
+          fi
+          gh release upload "$tag" "$win" "$apk" "$win.blockmap" latest.yml SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --latest
