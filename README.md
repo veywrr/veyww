@@ -4,9 +4,18 @@
 
 ## Download
 
-- **Windows** — [скачать установщик veyww 0.20.6 beta](https://github.com/veywrr/veyww/releases/download/v0.20.6/veyww-Windows-0.20.6-Setup.exe).
-- **Android** — [скачать APK 0.20.6](https://github.com/veywrr/veyww/releases/download/v0.20.6/veyww-Android-0.20.6-beta.apk) или открой [@veyww_bot](https://t.me/veyww_bot). Установи поверх прежней версии, чтобы сохранить данные.
-- **Браузер** — [открыть veyww.space](https://veyww.space/).
+- **Windows** — [скачать установщик veyww 0.21](https://github.com/veywrr/veyww/releases/download/v0.21.1/veyww-Windows-0.21.1-Setup.exe). Если у тебя 0.20.6, открой приложение заново и подтверди обновление.
+- **Android** — [скачать APK veyww 0.21](https://github.com/veywrr/veyww/releases/download/v0.21.1/veyww-Android-0.21.1.apk) или открой [@veyww_bot](https://t.me/veyww_bot). Установи поверх прежней версии, чтобы сохранить данные.
+- **Браузер и iPhone** — [открыть veyww.space](https://veyww.space/).
+
+## Что нового в veyww 0.21
+
+- Следующий трек в Windows может заранее получить резервный поток. Новые обложки очереди ждут запуска звука.
+- В оверлее Windows три размера, свободное перемещение, перемотка, очередь, звук и синхронизированный текст.
+- В топе слушателей можно выбрать сегодня, неделю, месяц, всё время или указать свои даты.
+- Подбор текста учитывает версию записи и фактическую длительность. Примерные метки подписаны в плеере.
+
+[Файлы 0.21 и SHA-256](https://github.com/veywrr/veyww/releases/tag/v0.21.1).
 
 ## Что нового в veyww 0.20.6
 
