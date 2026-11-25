@@ -4,9 +4,15 @@
 
 ## Download
 
-- **Windows** — [скачать установщик veyww 0.21](https://github.com/veywrr/veyww/releases/download/v0.21.1/veyww-Windows-0.21.1-Setup.exe). Если у тебя 0.20.6, открой приложение заново и подтверди обновление.
+- **Windows** — [скачать установщик veyww 0.21.2](https://github.com/veywrr/veyww/releases/download/v0.21.2/veyww-Windows-0.21.2-Setup.exe). В версиях 0.20.6 и новее открой приложение заново и подтверди обновление.
 - **Android** — [скачать APK veyww 0.21](https://github.com/veywrr/veyww/releases/download/v0.21.1/veyww-Android-0.21.1.apk) или открой [@veyww_bot](https://t.me/veyww_bot). Установи поверх прежней версии, чтобы сохранить данные.
 - **Браузер и iPhone** — [открыть veyww.space](https://veyww.space/).
+
+## Исправление регистрации · Windows 0.21.2
+
+Кнопка «Создать аккаунт» дожидается проверки сервера. Ошибки полей и соединения видны рядом с кнопкой, а повторные нажатия не создают несколько запросов. Исправление опубликовано также на сайте; Android остаётся 0.21.1.
+
+[Файлы 0.21.2 и SHA-256](https://github.com/veywrr/veyww/releases/tag/v0.21.2).
 
 ## Что нового в veyww 0.21
 

@@ -1,0 +1,55 @@
+name: Publish Windows registration hotfix 0.21.2
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.21.2.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tested installer and publish Windows hotfix
+        run: |
+          set -euo pipefail
+          mkdir release-files
+          cd release-files
+          win=veyww-Windows-0.21.2-Setup.exe
+          base=https://veyww.space/assets/updates/0.21.2
+          for attempt in {1..65}; do
+            if curl -fsS --max-time 5 "$base/ready.json" -o ready.json 2>/dev/null &&
+               jq -e '.run=="45682014553" and (.sha256|test("^[0-9a-f]{64}$"))' ready.json >/dev/null; then
+              break
+            fi
+            sleep 8
+          done
+          jq -e '.run=="45682014553"' ready.json >/dev/null
+          get(){ curl -fsSL --retry 2 --connect-timeout 15 --max-time 180 "$1" -o "$2"; }
+          get "$base/SHA256SUMS.txt" expected.txt
+          get "$base/latest.yml" latest.yml
+          get "$base/$win.blockmap" "$win.blockmap"
+          get 'https://veyww.space/download/windows?v=0.21.2' "$win"
+          python3 - "$win" <<'VERIFY'
+          import json,pathlib,re,sys
+          win=sys.argv[1];ready=json.loads(pathlib.Path('ready.json').read_text())
+          rows=[re.fullmatch(r'([0-9a-f]{64}) [ *](.+)',s) for s in pathlib.Path('expected.txt').read_text().splitlines()]
+          assert len(rows)==3 and all(rows)
+          assert {r[2] for r in rows}=={win,win+'.blockmap','latest.yml'}
+          assert next(r[1] for r in rows if r[2]==win)==ready['sha256']
+          assert pathlib.Path(win).stat().st_size==ready['size']
+          VERIFY
+          sha256sum --check --strict expected.txt
+          node -e 'const f=require("node:fs"),c=require("node:crypto"),a=require("node:assert/strict");const win=process.argv[1],y=f.readFileSync("latest.yml","utf8"),sha=c.createHash("sha512").update(f.readFileSync(win)).digest("base64");a.match(y,/^version: 0\.21\.2\r?$/m);a.ok(y.includes(win));a.ok([...y.matchAll(/sha512:\s*(\S+)/g)].every(m=>m[1]===sha));' "$win"
+          cp expected.txt SHA256SUMS.txt
+          if gh release view v0.21.2 --repo "$GITHUB_REPOSITORY" --json isDraft > draft.json 2>/dev/null; then
+            jq -e '.isDraft' draft.json >/dev/null
+          else
+            gh release create v0.21.2 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title 'veyww 0.21.2 — исправление регистрации Windows' --notes-file ../releases/0.21.2.md
+          fi
+          gh release upload v0.21.2 "$win" "$win.blockmap" latest.yml SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release edit v0.21.2 --repo "$GITHUB_REPOSITORY" --draft=false --latest
