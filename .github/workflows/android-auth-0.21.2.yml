@@ -1,0 +1,39 @@
+name: Publish Android account fix 0.21.2
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/android-auth-0.21.2.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tested APK and publish alongside the existing Windows release
+        run: |
+          set -euo pipefail
+          mkdir android-release
+          cd android-release
+          base=https://veyww.space/assets/updates/android-0.21.2
+          curl -fsS --retry 3 --max-time 15 "$base/ready.json" -o ready.json
+          jq -e '.run=="45765210033" and .version=="0.21.2" and .versionCode==27 and (.sha256|test("^[0-9a-f]{64}$"))' ready.json >/dev/null
+          apk=veyww-Android-0.21.2.apk
+          curl -fsSL --retry 3 --connect-timeout 15 --max-time 180 https://veyww.space/download/android -o "$apk"
+          curl -fsS --retry 3 --max-time 15 "$base/SHA256SUMS-Android-0.21.2.txt" -o SHA256SUMS-Android-0.21.2.txt
+          sha256sum --check --strict SHA256SUMS-Android-0.21.2.txt
+          test "$(sha256sum "$apk" | cut -d ' ' -f1)" = "$(jq -r .sha256 ready.json)"
+          test "$(stat -c %s "$apk")" = "$(jq -r .size ready.json)"
+          gh release view v0.21.2 --repo "$GITHUB_REPOSITORY" --json assets,body > existing.json
+          jq -e '.assets|any(.name=="veyww-Windows-0.21.2-Setup.exe")' existing.json >/dev/null
+          gh release upload v0.21.2 "$apk" SHA256SUMS-Android-0.21.2.txt --clobber --repo "$GITHUB_REPOSITORY"
+          jq -r .body existing.json > notes.md
+          if ! grep -Fq '<!-- android-auth-0.21.2 -->' notes.md; then
+            cat ../releases/android-0.21.2.md >> notes.md
+          fi
+          gh release edit v0.21.2 --repo "$GITHUB_REPOSITORY" --title 'veyww 0.21.2 — исправления входа Windows и Android' --notes-file notes.md
+          gh release view v0.21.2 --repo "$GITHUB_REPOSITORY" --json assets | jq --arg name "$apk" '.assets[]|select(.name==$name)|{name,size,url,digest}'
