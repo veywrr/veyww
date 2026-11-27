@@ -1,0 +1,53 @@
+name: Publish verified VEYWW 0.21.3
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-0.21.3.yml]
+permissions:
+  contents: write
+concurrency: veyww-public-release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify both tested installers and publish
+        run: |
+          set -euo pipefail
+          mkdir release-files
+          cd release-files
+          base=https://veyww.space/assets/updates/0.21.3
+          curl -fsSL --retry 2 --max-time 30 "$base/ready.json" -o ready.json
+          python3 - <<'VERIFY'
+          import json,pathlib,re,urllib.request,hashlib,base64
+          ready=json.loads(pathlib.Path('ready.json').read_text())
+          assert ready['version']=='0.21.3' and ready['run']=='46038392372'
+          assert ready['sourceCommit']=='d3cdd96d83410a7db153f519d967d447716eca41'
+          assert ready['platformRuns']=={'windows':'46038392372','android':'46035644962'}
+          win='veyww-Windows-0.21.3-Setup.exe'
+          expected={win,win+'.blockmap','latest.yml','veyww-Android-0.21.3.apk'}
+          assert set(ready['files'])==expected
+          for name,meta in ready['files'].items():
+           assert re.fullmatch('[0-9a-f]{64}',meta['sha256']) and 0<meta['size']<300000000
+           digest=hashlib.sha256();size=0
+           with urllib.request.urlopen('https://veyww.space/assets/updates/0.21.3/'+name,timeout=180) as src,open(name,'wb') as dest:
+            while chunk:=src.read(1024*1024):
+             size+=len(chunk);assert size<=meta['size'];digest.update(chunk);dest.write(chunk)
+           assert size==meta['size'] and digest.hexdigest()==meta['sha256'],name
+          y=pathlib.Path('latest.yml').read_text()
+          assert re.search(r'^version: 0\.21\.3\s*$',y,re.M) and win in y
+          sha=base64.b64encode(hashlib.sha512(pathlib.Path(win).read_bytes()).digest()).decode()
+          hashes=re.findall(r'sha512:\s*(\S+)',y);assert hashes and all(x==sha for x in hashes)
+          pathlib.Path('SHA256SUMS.txt').write_text(''.join(meta['sha256']+'  '+name+'\n' for name,meta in sorted(ready['files'].items())))
+          print('Both platform installers and Windows update metadata verified')
+          VERIFY
+          if gh release view v0.21.3 --repo "$GITHUB_REPOSITORY" --json isDraft > draft.json 2>/dev/null; then
+            jq -e '.isDraft' draft.json >/dev/null
+          else
+            gh release create v0.21.3 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --title 'veyww 0.21.3 — подборки, обложки и стабильность' --notes-file ../releases/0.21.3.md
+          fi
+          gh release upload v0.21.3 veyww-Windows-0.21.3-Setup.exe veyww-Windows-0.21.3-Setup.exe.blockmap veyww-Android-0.21.3.apk latest.yml SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release edit v0.21.3 --repo "$GITHUB_REPOSITORY" --draft=false --latest
